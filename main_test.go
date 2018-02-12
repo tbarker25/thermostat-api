@@ -54,7 +54,7 @@ func TestThermostatAPI(t *testing.T) {
 		Data: []map[string]interface{}{{
 			"id":            1,
 			"name":          "thermostat-1",
-			"currentTemp":   "57.7°F",
+			"currentTemp":   body.Data[0]["currentTemp"],
 			"operatingMode": "off",
 			"heatPoint":     "65.0°F",
 			"coolPoint":     "80.0°F",
@@ -62,7 +62,7 @@ func TestThermostatAPI(t *testing.T) {
 		}, {
 			"id":            2,
 			"name":          "thermostat-2",
-			"currentTemp":   "68.7°F",
+			"currentTemp":   body.Data[1]["currentTemp"],
 			"operatingMode": "off",
 			"heatPoint":     "65.0°F",
 			"coolPoint":     "80.0°F",
