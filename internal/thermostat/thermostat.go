@@ -9,6 +9,8 @@ import (
 	"github.com/tbarker25/thermostat-api/internal/temp"
 )
 
+// nextID stores the next ID to assign to a new thermostat. Note that the ID
+// field should be unique.
 var nextID uint32 = 1
 
 // Thermostat represents the current state of a thermostat
@@ -38,8 +40,6 @@ func New() *Thermostat {
 
 // GetID retrieves a thermostat's unique identifier
 func (t *Thermostat) GetID() uint32 {
-	t.lock.RLock()
-	defer t.lock.RUnlock()
 	return t.id
 }
 
@@ -115,9 +115,6 @@ func (t *Thermostat) SetCoolPoint(coolPoint temp.Temp) {
 
 // GetCurrentTemp retrieves the current temperature of a thermostat
 func (t *Thermostat) GetCurrentTemp() temp.Temp {
-	t.lock.RLock()
-	defer t.lock.RUnlock()
-
 	// Geometric mean of temperature distribution
 	const average = 70
 
@@ -132,7 +129,7 @@ func (t *Thermostat) MarshalJSON() ([]byte, error) {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
 
-	t2 := struct {
+	v := struct {
 		ID            uint32        `json:"id"`
 		Name          string        `json:"name"`
 		CurrentTemp   temp.Temp     `json:"currentTemp"`
@@ -150,5 +147,5 @@ func (t *Thermostat) MarshalJSON() ([]byte, error) {
 		FanMode:       t.fanMode,
 	}
 
-	return json.MarshalIndent(t2, "", "  ")
+	return json.MarshalIndent(v, "", "  ")
 }
