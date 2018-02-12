@@ -28,7 +28,7 @@ func Celcius(x float64) Temp {
 
 // Fahrenheit makes a new Temp from a value in degrees Fahrenheit
 func Fahrenheit(x float64) Temp {
-	return Temp((x-32)*5/9 + 273)
+	return Temp((x-32)*5/9 + 273.15)
 }
 
 // Kelvin retrieves the value of Temp in Kelvin

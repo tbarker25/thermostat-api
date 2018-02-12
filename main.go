@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
+	"net"
 	"reflect"
 	"strconv"
 	"strings"
@@ -15,13 +17,33 @@ import (
 )
 
 func main() {
+	addr := flag.String("address", "0.0.0.0:80", "Address to listen on")
+	flag.Parse()
+
+	handler := getHandler()
+
+	ln, err := net.Listen("tcp4", *addr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("listening on %s\n", ln.Addr())
+
+	err = (&fasthttp.Server{
+		Handler: handler,
+	}).Serve(ln)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func getHandler() fasthttp.RequestHandler {
 	router := fasthttprouter.New()
 	router.PanicHandler = handlePanic
 	router.GET("/thermostat", handleThermostatList)
 	router.GET("/thermostat/:id", handleThermostatGet)
 	router.PATCH("/thermostat/:id", handleThermostatSet)
-
-	log.Fatal(fasthttp.ListenAndServe(":8080", router.Handler))
+	return router.Handler
 }
 
 func handlePanic(ctx *fasthttp.RequestCtx, err interface{}) {
@@ -69,11 +91,11 @@ func handleThermostatSet(ctx *fasthttp.RequestCtx) {
 	}
 
 	var body struct {
-		Name          *string
-		OperatingMode *thermostat.OperatingMode
-		HeatPoint     *temp.Temp
-		CoolPoint     *temp.Temp
-		FanMode       *thermostat.FanMode
+		Name          *string                   `json:"name"`
+		OperatingMode *thermostat.OperatingMode `json:"operatingMode"`
+		HeatPoint     *temp.Temp                `json:"heatPoint"`
+		CoolPoint     *temp.Temp                `json:"coolPoint"`
+		FanMode       *thermostat.FanMode       `json:"fanMode"`
 	}
 
 	err = jsonUnmarshalStrict(ctx.PostBody(), &body)
@@ -121,12 +143,16 @@ func jsonUnmarshalStrict(data []byte, v interface{}) error {
 		return err
 	}
 
-	fieldByName := reflect.ValueOf(v).Elem().FieldByName
+	t := reflect.ValueOf(v).Elem().Type()
 	var unwantedFields []string
+nextField:
 	for k := range tmp {
-		if !fieldByName(k).IsValid() {
-			unwantedFields = append(unwantedFields, k)
+		for i := 0; i < t.NumField(); i++ {
+			if strings.EqualFold(k, t.Field(i).Name) {
+				continue nextField
+			}
 		}
+		unwantedFields = append(unwantedFields, k)
 	}
 	if unwantedFields != nil {
 		return fmt.Errorf("unsupported fields '%s'",
