@@ -154,7 +154,7 @@ func TestThermostatAPI(t *testing.T) {
 			"operatingMode": "cool",
 			"heatPoint":     "65.0°F",
 			"coolPoint":     "75.0°F",
-			"fanMode":       "off",
+			"fanMode":       "auto",
 		}, {
 			"id":            2,
 			"name":          "downstairs kitchen",

@@ -32,7 +32,7 @@ func (m *FanMode) UnmarshalText(text []byte) error {
 		return nil
 
 	case "auto":
-		*m = FanOff
+		*m = FanAuto
 		return nil
 
 	default:
